@@ -40,6 +40,11 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+
+# migration generate
+npx cross-env npm_config_name=first npm run migration:generate
+
+#
 ```
 
 ## Support

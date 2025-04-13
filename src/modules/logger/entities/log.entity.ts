@@ -1,4 +1,4 @@
-import { AbstractEntity } from 'src/modules/database/abstract.entity';
+import { AbstractEntity } from 'src/database/abstract.entity';
 import { Entity, Column } from 'typeorm';
 import { NodeEnv } from '../enums/node-env.enum';
 

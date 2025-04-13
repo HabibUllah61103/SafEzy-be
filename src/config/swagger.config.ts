@@ -8,8 +8,8 @@ const SWAGGER_UI_PATH = 'api';
 const createSwaggerConfig = () =>
   new DocumentBuilder()
     .addBearerAuth()
-    .setTitle('Fit-Chick Moment API')
-    .setDescription('Fit-Chick API description')
+    .setTitle('SafEzy API')
+    .setDescription('SafEzy` description')
     .setVersion('1.0')
     .addServer('http://localhost:3000', 'Local')
 
