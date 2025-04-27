@@ -25,4 +25,11 @@ export const configValidationSchema = Joi.object({
 
   JWT_REFRESH_SECRET_KEY: Joi.string().required(),
   JWT_REFRESH_EXPIRES_IN: Joi.string().required(),
+
+  SMTP_USER: Joi.string().required(),
+  SMTP_PASSWORD: Joi.string().required(),
+  SMTP_SERVICE: Joi.string().required(),
+  SMTP_HOST: Joi.string().required(),
+  SMTP_PORT: Joi.number().required(),
+  SMTP_APP_NAME: Joi.string().required(),
 });

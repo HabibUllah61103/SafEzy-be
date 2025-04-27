@@ -34,10 +34,16 @@ export const configVariables = () => ({
     },
   },
   smtp: {
-    email: process.env.SMTP_EMAIL,
+    user: process.env.SMTP_USER,
     password: process.env.SMTP_PASSWORD,
     service: process.env.SMTP_SERVICE,
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
+    name: process.env.SMTP_APP_NAME,
+  },
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    secret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackUrl: process.env.GOOGLE_CALLBACK_URL,
   },
 });

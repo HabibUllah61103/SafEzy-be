@@ -13,7 +13,7 @@ export default new DataSource({
   username: configService.getOrThrow('POSTGRES_LOG_USER'),
   password: configService.getOrThrow('POSTGRES_LOG_PASSWORD'),
   database: configService.getOrThrow('POSTGRES_LOG_DB'),
-  migrations: ['./database/migrations/log/**'],
+  migrations: ['./src/database/migrations/log/**'],
   entities: ['dist/log/**/*.entity.js'],
   // uncomment the following line if you want to use SSL connection
   // ssl: {

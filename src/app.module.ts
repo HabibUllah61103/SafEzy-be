@@ -1,16 +1,26 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { LoggerModule } from './modules/logger/logger.module';
 import { getEnvironmentFilePath } from './utils/getEnvironmentFilePath';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
+import { AllExceptionsFilter } from './shared/filters/all-exceptions.filter';
 import { DatabaseModule } from './database';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { join } from 'path';
 import { configValidationSchema, configVariables } from './config';
+import { UserModule } from './modules/user/user.module';
+import { RoleGuard } from './shared/guards/role.guard';
+import { JwtUserStrategy } from './modules/iam/auth/strategies/jwt-user.strategy';
+import { IamModule } from './modules/iam/iam.module';
+import { JwtAdminStrategy } from './modules/iam/auth/strategies/jwt-admin.strategy';
+import { MailModule } from './mail/mail.module';
+import { HttpLoggerMiddleware } from './shared/middlewares';
+import { LogModule } from './log/log.module';
+import { VehicleModule } from './modules/vehicle/vehicle.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -37,9 +47,18 @@ import { configValidationSchema, configVariables } from './config';
     EventEmitterModule.forRoot(),
     DatabaseModule,
     LoggerModule,
+    LogModule,
+    UserModule,
+    IamModule,
+    MailModule,
+    VehicleModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [
+    JwtUserStrategy,
+    JwtAdminStrategy,
+    RoleGuard,
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
@@ -50,4 +69,8 @@ import { configValidationSchema, configVariables } from './config';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HttpLoggerMiddleware).forRoutes('*');
+  }
+}
