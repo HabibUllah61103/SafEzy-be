@@ -11,6 +11,7 @@ const createSwaggerConfig = () =>
     .setTitle('SafEzy API')
     .setDescription('SafEzy` description')
     .setVersion('1.0')
+    .addServer('https://safezy-be.onrender.com', 'Deployed')
     .addServer('http://localhost:3000', 'Local')
 
     .addBearerAuth({

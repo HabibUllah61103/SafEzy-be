@@ -8,6 +8,7 @@ import { UserProfile } from './user-profile.entity';
 import { VehicleUsers } from 'src/modules/vehicle/entities/vehicle-users.entity';
 import { Notification } from 'src/modules/notifications/entities/notification.entity';
 import { ProviderType } from '../interfaces/provider-type.type';
+import { Device } from 'src/modules/device/entities/device.entity';
 
 @Entity('user')
 export class User extends AbstractEntity {
@@ -19,6 +20,9 @@ export class User extends AbstractEntity {
 
   @Column({ name: 'profile_image_url', nullable: true })
   profileImageUrl: string;
+
+  @Column({ type: 'text', array: true, nullable: true })
+  images: string[];
 
   @Column({ name: 'is_verified', type: 'boolean', default: false })
   isVerified: boolean;
@@ -83,4 +87,9 @@ export class User extends AbstractEntity {
     cascade: true,
   })
   notificationsSent: Notification[];
+
+  @OneToMany(() => Device, (device) => device.owner, {
+    cascade: true,
+  })
+  devices: Device[];
 }
