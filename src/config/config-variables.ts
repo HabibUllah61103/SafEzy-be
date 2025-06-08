@@ -46,4 +46,9 @@ export const configVariables = () => ({
     secret: process.env.GOOGLE_CLIENT_SECRET,
     callbackUrl: process.env.GOOGLE_CALLBACK_URL,
   },
+  cloud: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    cloudApiKey: process.env.CLOUDINARY_API_KEY,
+    cloudApiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
 });

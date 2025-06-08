@@ -86,8 +86,6 @@ export class AuthController {
       OtpPurpose.USER_VERIFICATION,
     );
 
-    console.log('OTP:', otp);
-
     try {
       this.eventEmitter.emit('email.send', {
         recipients: [{ name: body.name, address: body.email, otp: otp }],

@@ -21,6 +21,7 @@ import { HttpLoggerMiddleware } from './shared/middlewares';
 import { LogModule } from './log/log.module';
 import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     MailModule,
     VehicleModule,
     NotificationsModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [
