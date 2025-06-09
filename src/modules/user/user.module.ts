@@ -10,7 +10,6 @@ import { HashingService } from 'src/shared/services/hashing.service';
 import { PRIMARY_CONNECTION } from 'src/database';
 import { UserProfileRepository } from './repositories/user-profile.repository';
 import { UserProfile } from './entities/user-profile.entity';
-import { GeocodingService } from 'src/google/geocoding/geocoding.service';
 
 @Module({
   imports: [
@@ -23,7 +22,6 @@ import { GeocodingService } from 'src/google/geocoding/geocoding.service';
     UserProfileRepository,
     FcmTokenRepository,
     HashingService,
-    GeocodingService,
   ],
   exports: [UserService],
 })

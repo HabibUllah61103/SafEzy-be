@@ -137,6 +137,7 @@ export class AuthService {
         phone: user?.phone,
         profileImageUrl: user?.profileImageUrl,
       },
+      onBoarded: user.isOnboarded,
       verified: user.isVerified,
       role: user.role,
     };

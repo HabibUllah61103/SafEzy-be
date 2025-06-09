@@ -8,10 +8,15 @@ import {
   renderOTPEmailTemplate,
   renderWelcomeEmailTemplate,
 } from 'src/utils/emailRenderer';
+import { handleServiceError } from 'src/utils/error-handler.util';
+import { LoggerService } from 'src/modules/logger/logger.service';
 
 @Injectable()
 export class MailService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly logger: LoggerService,
+  ) {}
 
   createMailTransport() {
     const transporter = createTransport({
@@ -63,8 +68,7 @@ export class MailService {
       const result = await transport.sendMail(options);
       return result;
     } catch (error) {
-      console.error('Error sending email:', error.stack);
-      throw new BadRequestException('Failed to send email', error.message);
+      handleServiceError(error, 'mailService#sendMail', this.logger);
     }
   }
 

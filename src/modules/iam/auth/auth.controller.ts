@@ -40,7 +40,7 @@ export class AuthController {
     private readonly hashingService: HashingService,
   ) {}
 
-  @ApiOperation({ summary: 'Google login for web' })
+  @ApiOperation({ summary: 'Google login for web (User)' })
   @Get('/login')
   @UseGuards(AuthGuard('google'))
   async googleLogin() {
@@ -70,7 +70,7 @@ export class AuthController {
       });
 
       return {
-        url: `${webUrl}/verification?access_token=${access_token}&status=${user.isVerified}`,
+        url: `${webUrl}/verification?access_token=${access_token}&status=${user.isVerified}&onboarded=${user.isOnboarded}`,
       };
     }
   }

@@ -47,11 +47,19 @@ export class UserController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  @UseGuards(AuthGuard([RoleStrategy.ADMIN]))
+  @ApiOperation({
+    summary: 'Get User Profile (Admin)',
+  })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.findOne(id);
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard([RoleStrategy.USER, RoleStrategy.ADMIN]))
+  @ApiOperation({
+    summary: 'Update LoggedIn User (User, Admin)',
+  })
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -60,6 +68,10 @@ export class UserController {
   }
 
   @Patch('profile/:id')
+  @UseGuards(AuthGuard([RoleStrategy.USER, RoleStrategy.ADMIN]))
+  @ApiOperation({
+    summary: 'Update LoggedIn User Profile (User, Admin)',
+  })
   async updateProfile(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateProfileDto: UpdateProfileDto,
@@ -68,7 +80,11 @@ export class UserController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @UseGuards(AuthGuard([RoleStrategy.USER]))
+  @ApiOperation({
+    summary: 'Remove LoggedIn User (User)',
+  })
+  async remove(@GetUser() { id }: LoggedInUser) {
+    return await this.userService.remove(id);
   }
 }

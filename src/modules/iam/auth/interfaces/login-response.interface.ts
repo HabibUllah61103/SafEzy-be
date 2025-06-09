@@ -9,6 +9,7 @@ export interface LoginResponse {
     phone: string;
     profileImageUrl: string;
   };
+  onBoarded: boolean;
   verified: boolean;
   role: UserRole;
 }

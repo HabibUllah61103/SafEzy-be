@@ -18,18 +18,18 @@ import { CreateProfileDto } from './dto/create-profile.dto';
 import { UserProfileRepository } from './repositories/user-profile.repository';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CreateUserGoogleDto } from '../iam/auth/dtos/create-user-google.dto';
-import { GeocodingService } from 'src/google/geocoding/geocoding.service';
 import formatCoordinatesIntoPoint from 'src/utils/formatCoordinatesIntoPoint';
 import { Point } from 'geojson';
 import { UserRole } from './enum/user-role.enum';
 import { ConfigService } from '@nestjs/config';
+import { SuccessMessageResponse } from 'src/shared/types/response.types';
+import { handleServiceError } from 'src/utils/error-handler.util';
 
 @Injectable()
 export class UserService implements OnModuleInit {
   constructor(
     private readonly userProfileRepository: UserProfileRepository,
     private readonly fcmTokenRepository: FcmTokenRepository,
-    private readonly geocodingService: GeocodingService,
     private readonly userRepository: UserRepository,
     private readonly hashingService: HashingService,
     private readonly configService: ConfigService,
@@ -74,9 +74,7 @@ export class UserService implements OnModuleInit {
   async createProfile(
     id: number,
     createProfileDto: CreateProfileDto,
-  ): Promise<{
-    message: string;
-  }> {
+  ): Promise<SuccessMessageResponse> {
     const user = await this.userRepository.findOne({
       where: { id },
     });
@@ -85,24 +83,21 @@ export class UserService implements OnModuleInit {
 
     let dto: Point;
 
-    const geocodeResponse = await this.geocodingService.geocode(
-      createProfileDto?.address,
-    );
-
-    console.log(geocodeResponse);
-
-    if (geocodeResponse) {
-      const { lat, long } = geocodeResponse;
-
-      dto = formatCoordinatesIntoPoint(long, lat);
+    if (createProfileDto.long && createProfileDto.lat) {
+      dto = formatCoordinatesIntoPoint(
+        createProfileDto.long,
+        createProfileDto.lat,
+      );
       console.log(dto);
     }
 
-    // await this.userProfileRepository.save({
-    //   ...createProfileDto,
-    //   userId: id,
-    //   location: dto,
-    // });
+    await this.userProfileRepository.save({
+      ...createProfileDto,
+      userId: id,
+      location: dto,
+    });
+
+    await this.onBoardUser(id);
 
     return {
       message: 'User profile created successfully',
@@ -113,11 +108,14 @@ export class UserService implements OnModuleInit {
     return `This action returns all user`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOne(id: number): Promise<User> {
+    return this.find(null, { id });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<SuccessMessageResponse> {
     try {
       const userExists = await this.find({ id: true }, { id });
 
@@ -129,16 +127,14 @@ export class UserService implements OnModuleInit {
         message: 'User updated successfully',
       };
     } catch (error) {
-      this.logger.error(`Error in userService#update: ${error}`);
-      if (error.status === 500)
-        throw new InternalServerErrorException(
-          `Couldn't update the user entity: ${error.message}`,
-        );
-      throw new BadRequestException(`${error.message}`);
+      handleServiceError(error, 'UserService#update', this.logger);
     }
   }
 
-  async updateProfile(id: number, updateProfileDto: UpdateProfileDto) {
+  async updateProfile(
+    id: number,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<SuccessMessageResponse> {
     try {
       const userExists = await this.find({ id: true }, { id });
 
@@ -150,17 +146,27 @@ export class UserService implements OnModuleInit {
         message: 'User profile updated successfully',
       };
     } catch (error) {
-      this.logger.error(`Error in userService#updateProfile: ${error}`);
-      if (error.status === 500)
-        throw new InternalServerErrorException(
-          `Couldn't update the user entity: ${error.message}`,
-        );
-      throw new BadRequestException(`${error.message}`);
+      handleServiceError(error, 'UserService#updateProfile', this.logger);
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  /**
+   * Soft deletes a user by updating their email and marking the deletion timestamp.
+   *
+   * @param id The unique identifier of the user to be deleted
+   * @returns An object with a success message indicating the user was deleted
+   */
+  async remove(id: number): Promise<SuccessMessageResponse> {
+    const user = await this.find(null, { id });
+    const deletedEmail = String(id) + user.email;
+    await this.userRepository.update(
+      { id },
+      { email: deletedEmail, deletedAt: new Date() },
+    );
+
+    return {
+      message: 'User Deleted Succesfully',
+    };
   }
 
   /**
@@ -197,9 +203,27 @@ export class UserService implements OnModuleInit {
     });
   }
 
+  /**
+   * Marks a user as verified by updating their verification status.
+   *
+   * @param id The unique identifier of the user to be verified
+   * @returns The result of updating the user's verification status
+   */
   verifyUser(id: number) {
     return this.userRepository.update(id, {
       isVerified: true,
+    });
+  }
+
+  /**
+   * Marks a user as onboarded by updating their onboarding status.
+   *
+   * @param id The unique identifier of the user to be marked as onboarded
+   * @returns The result of updating the user's onboarding status
+   */
+  onBoardUser(id: number) {
+    return this.userRepository.update(id, {
+      isOnboarded: true,
     });
   }
 
@@ -262,8 +286,7 @@ export class UserService implements OnModuleInit {
 
       await this.fcmTokenRepository.save(fcmToken);
     } catch (error) {
-      this.logger.error(`Error in UserService#addFcmToken: ${error}`);
-      throw new BadRequestException("Couldn't add FCM token", error.message);
+      handleServiceError(error, 'UserService#addFcmToken', this.logger);
     }
   }
 
@@ -295,8 +318,7 @@ export class UserService implements OnModuleInit {
         user: { id: userId },
       });
     } catch (error) {
-      this.logger.error(`Error in UserService#removeFcmToken: ${error}`);
-      throw new BadRequestException("Couldn't remove FCM token", error.message);
+      handleServiceError(error, 'UserService#removeFcmToken', this.logger);
     }
   }
 }

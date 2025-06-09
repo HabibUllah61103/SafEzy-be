@@ -2,8 +2,7 @@ export const configVariables = () => ({
   server: {
     port: process.env.PORT,
     environment: process.env.NODE_ENV,
-    // frontendUrlDevelopment: process.env.FRONTEND_URL_DEVELOPMENT,
-    // frontendUrlStaging: process.env.FRONTEND_URL_STAGING,
+    webUrl: process.env.WEBAPP_URL,
     bypassPassword: process.env.BYPASS_PASSWORD,
     bypassOTP: process.env.BYPASS_OTP,
   },
