@@ -32,6 +32,10 @@ export const configVariables = () => ({
       secretkey: process.env.JWT_REFRESH_SECRET_KEY,
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
     },
+    admin: {
+      secretKey: process.env.JWT_SECRET_ADMIN,
+      expiresIn: process.env.JWT_SECRET_ADMIN_EXPIRES_IN,
+    },
   },
   smtp: {
     user: process.env.SMTP_USER,
@@ -50,5 +54,10 @@ export const configVariables = () => ({
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
     cloudApiKey: process.env.CLOUDINARY_API_KEY,
     cloudApiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
+  admin: {
+    name: process.env.DEFAULT_ADMIN_NAME,
+    email: process.env.DEFAULT_ADMIN_EMAIL,
+    password: process.env.DEFAULT_ADMIN_PASSWORD,
   },
 });

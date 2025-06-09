@@ -35,7 +35,7 @@ export class VehicleService {
 
       await this.vehicleRepository.save({
         ...createVehicleDto,
-        userId: id,
+        ownerId: id,
       });
     } catch (error) {
       throw error;

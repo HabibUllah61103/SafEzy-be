@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { UserRepository } from './repositories/user.respository';
 import { FindOptionsSelect, FindOptionsWhere } from 'typeorm';
@@ -20,17 +21,43 @@ import { CreateUserGoogleDto } from '../iam/auth/dtos/create-user-google.dto';
 import { GeocodingService } from 'src/google/geocoding/geocoding.service';
 import formatCoordinatesIntoPoint from 'src/utils/formatCoordinatesIntoPoint';
 import { Point } from 'geojson';
+import { UserRole } from './enum/user-role.enum';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class UserService {
+export class UserService implements OnModuleInit {
   constructor(
-    private readonly userRepository: UserRepository,
     private readonly userProfileRepository: UserProfileRepository,
     private readonly fcmTokenRepository: FcmTokenRepository,
-    private readonly hashingService: HashingService,
     private readonly geocodingService: GeocodingService,
+    private readonly userRepository: UserRepository,
+    private readonly hashingService: HashingService,
+    private readonly configService: ConfigService,
     private readonly logger: LoggerService,
   ) {}
+
+  async onModuleInit() {
+    const admin = await this.userRepository.findOne({
+      where: {
+        role: UserRole.ADMIN,
+      },
+    });
+
+    if (!admin) {
+      await this.userRepository.save({
+        isOnboarded: true,
+        isVerified: true,
+        role: UserRole.ADMIN,
+        email: this.configService.getOrThrow<string>('admin.email'),
+        name: this.configService.getOrThrow<string>('admin.name'),
+        profileImageUrl:
+          'https://res.cloudinary.com/dtcu7xpaq/image/upload/v1749451211/ublygng1yd7kg3gqdwm4.png',
+        password: await this.hashingService.hash(
+          this.configService.getOrThrow<string>('admin.password'),
+        ),
+      });
+    }
+  }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const createUser = await this.userRepository.save(createUserDto);
