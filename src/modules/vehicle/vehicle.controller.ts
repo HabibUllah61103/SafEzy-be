@@ -36,8 +36,12 @@ export class VehicleController {
   }
 
   @Get()
-  findAll() {
-    return this.vehicleService.findAll();
+  @UseGuards(AuthGuard([RoleStrategy.USER]))
+  @ApiOperation({
+    summary: 'Create User Vehicle (User)',
+  })
+  findAll(@GetUser() { id }: LoggedInUser) {
+    return this.vehicleService.findAll(id);
   }
 
   @Get(':id')
@@ -46,8 +50,15 @@ export class VehicleController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVehicleDto: UpdateVehicleDto) {
-    return this.vehicleService.update(+id, updateVehicleDto);
+  @UseGuards(AuthGuard([RoleStrategy.USER]))
+  @ApiOperation({
+    summary: 'Create User Vehicle (User)',
+  })
+  async update(
+    @Param('id') id: string,
+    @Body() updateVehicleDto: UpdateVehicleDto,
+  ) {
+    return await this.vehicleService.update(+id, updateVehicleDto);
   }
 
   @Delete(':id')

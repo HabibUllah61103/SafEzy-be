@@ -5,6 +5,8 @@ import { VehicleRepository } from './repositories/vehicle.respository';
 import { FindOptionsSelect, FindOptionsWhere } from 'typeorm';
 import { Vehicle } from './entities/vehicle.entity';
 import { UserService } from '../user/user.service';
+import { VehicleStatus } from './enum/vehicle-status.enum';
+import { SuccessMessageResponse } from 'src/shared/types/response.types';
 
 @Injectable()
 export class VehicleService {
@@ -13,7 +15,10 @@ export class VehicleService {
     private readonly userService: UserService,
   ) {}
 
-  async create(id: number, createVehicleDto: CreateVehicleDto) {
+  async create(
+    id: number,
+    createVehicleDto: CreateVehicleDto,
+  ): Promise<SuccessMessageResponse> {
     try {
       const carExists = await this.find(null, {
         numberPlate: createVehicleDto.numberPlate,
@@ -36,23 +41,29 @@ export class VehicleService {
       await this.vehicleRepository.save({
         ...createVehicleDto,
         ownerId: id,
+        status: VehicleStatus.APPROVED,
       });
+
+      return {
+        message: 'Vehicle Added Succesfully',
+      };
     } catch (error) {
       throw error;
     }
   }
 
-  findAll() {
-    return `This action returns all vehicle`;
+  findAll(id: number) {
+    return this.vehicleRepository.find({ where: { ownerId: id } });
   }
 
   findOne(id: number) {
     return `This action returns a #${id} vehicle`;
   }
 
-  update(id: number, updateVehicleDto: UpdateVehicleDto) {
+  async update(id: number, updateVehicleDto: UpdateVehicleDto) {
     console.log(updateVehicleDto);
-    return `This action updates a #${id} vehicle`;
+    await this.vehicleRepository.update({ id }, { ...updateVehicleDto });
+    return { message: 'Vehicle updated successfully' };
   }
 
   remove(id: number) {
