@@ -24,6 +24,7 @@ import { UserRole } from './enum/user-role.enum';
 import { ConfigService } from '@nestjs/config';
 import { SuccessMessageResponse } from 'src/shared/types/response.types';
 import { handleServiceError } from 'src/utils/error-handler.util';
+import { UserProfile } from './entities/user-profile.entity';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -97,6 +98,11 @@ export class UserService implements OnModuleInit {
       location: dto,
     });
 
+    await this.userRepository.update(
+      { id },
+      { profileImageUrl: createProfileDto.profileImageUrl },
+    );
+
     await this.onBoardUser(id);
 
     return {
@@ -167,6 +173,23 @@ export class UserService implements OnModuleInit {
     return {
       message: 'User Deleted Succesfully',
     };
+  }
+
+  /**
+   * Finds a single user based on optional select and where conditions. Use this function when you need to find a single user without any relations. If you need to find a user with relations, use the queryBuilder method.
+   *
+   * @param select Optional fields to select from the user
+   * @param where Optional conditions to filter the user
+   * @returns A Promise resolving to a single User entity
+   */
+  findProfile(
+    select?: FindOptionsSelect<UserProfile>,
+    where?: FindOptionsWhere<UserProfile>,
+  ): Promise<UserProfile> {
+    return this.userProfileRepository.findOne({
+      where,
+      select,
+    });
   }
 
   /**

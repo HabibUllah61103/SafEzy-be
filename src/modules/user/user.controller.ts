@@ -18,6 +18,12 @@ import { RoleStrategy } from '../iam/auth/enums/role-strategy.enum';
 import { GetUser } from 'src/shared/decorators/user.decorator';
 import { LoggedInUser } from './interfaces/logged-in-user.interface';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { Role } from 'src/shared/decorators/role.decorator';
+import { UserRole } from './enum/user-role.enum';
+import { RoleGuard } from 'src/shared/guards/role.guard';
+import { JwtUserAuthGuard } from 'src/shared/guards/user-jwt.guard';
+import { JwtAdminAuthGuard } from 'src/shared/guards/admin-jwt.guard';
+import { JwtAuthGuard } from 'src/shared/guards/jwt.guard';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -26,7 +32,8 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('profile')
-  @UseGuards(AuthGuard([RoleStrategy.USER]))
+  @Role(UserRole.USER)
+  @UseGuards(JwtUserAuthGuard, RoleGuard)
   @ApiOperation({
     summary: 'Create User Profile (User)',
   })
@@ -38,16 +45,28 @@ export class UserController {
   }
 
   @Get('me')
-  @UseGuards(AuthGuard([RoleStrategy.USER]))
+  @Role(UserRole.USER)
+  @UseGuards(JwtUserAuthGuard, RoleGuard)
   @ApiOperation({
-    summary: 'Get LoggedIn User Profile (User)',
+    summary: 'Get LoggedIn User (User)',
   })
   findMe(@GetUser() { id }: LoggedInUser) {
     return this.userService.find(null, { id });
   }
 
+  @Get('profile/me')
+  @Role(UserRole.USER)
+  @UseGuards(JwtUserAuthGuard, RoleGuard)
+  @ApiOperation({
+    summary: 'Get LoggedIn User Profile (User)',
+  })
+  findProfileMe(@GetUser() { id }: LoggedInUser) {
+    return this.userService.findProfile(null, { userId: id });
+  }
+
   @Get(':id')
-  @UseGuards(AuthGuard([RoleStrategy.ADMIN]))
+  @Role(UserRole.ADMIN)
+  @UseGuards(JwtAdminAuthGuard, RoleGuard)
   @ApiOperation({
     summary: 'Get User Profile (Admin)',
   })
@@ -56,7 +75,8 @@ export class UserController {
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard([RoleStrategy.USER, RoleStrategy.ADMIN]))
+  @Role(UserRole.USER, UserRole.ADMIN)
+  @UseGuards(RoleGuard)
   @ApiOperation({
     summary: 'Update LoggedIn User (User, Admin)',
   })
@@ -68,7 +88,8 @@ export class UserController {
   }
 
   @Patch('profile/:id')
-  @UseGuards(AuthGuard([RoleStrategy.USER, RoleStrategy.ADMIN]))
+  @Role(UserRole.ADMIN, UserRole.USER)
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @ApiOperation({
     summary: 'Update LoggedIn User Profile (User, Admin)',
   })
@@ -80,7 +101,8 @@ export class UserController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard([RoleStrategy.USER]))
+  @Role(UserRole.USER)
+  @UseGuards(JwtUserAuthGuard, RoleGuard)
   @ApiOperation({
     summary: 'Remove LoggedIn User (User)',
   })

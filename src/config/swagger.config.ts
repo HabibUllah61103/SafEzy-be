@@ -25,6 +25,9 @@ export function useSwagger(app: INestApplication): void {
   const config = createSwaggerConfig();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup(SWAGGER_UI_PATH, app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
     customCss: theme.getBuffer(SwaggerThemeNameEnum.DARK),
   });
 }

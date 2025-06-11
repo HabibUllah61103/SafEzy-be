@@ -54,6 +54,15 @@ export class CreateProfileDto {
   city: string;
 
   @ApiProperty({
+    type: String,
+    example: 'www.example.com',
+    required: true,
+    description: 'Url of upload profile image',
+  })
+  @IsNotEmpty()
+  profileImageUrl: string;
+
+  @ApiProperty({
     required: true,
     type: 'number',
     description: 'Longitude',
