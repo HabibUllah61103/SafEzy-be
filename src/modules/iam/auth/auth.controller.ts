@@ -4,13 +4,14 @@ import {
   Controller,
   Get,
   HttpStatus,
+  Param,
   Post,
   Redirect,
   Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GetUser } from 'src/shared/decorators/user.decorator';
 import { FcmTokenDto } from 'src/shared/dtos/fcm-token.dto';
 import { LoggedInUser } from 'src/modules/user/interfaces/logged-in-user.interface';
@@ -28,6 +29,11 @@ import { UserRole } from 'src/modules/user/enum/user-role.enum';
 import { UserService } from 'src/modules/user/user.service';
 import { HashingService } from 'src/shared/services/hashing.service';
 import { AuthGuard } from '@nestjs/passport';
+import { Role } from 'src/shared/decorators/role.decorator';
+import { JwtAdminAuthGuard } from 'src/shared/guards/admin-jwt.guard';
+import { RoleGuard } from 'src/shared/guards/role.guard';
+import { InviteAdminDto } from './dtos/invite-admin.dto';
+import { SetPasswordDto } from './dtos/set-password.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -127,6 +133,44 @@ export class AuthController {
     }
 
     return accessToken;
+  }
+
+  @Post('invite-admin')
+  @ApiOperation({ summary: 'Admin' })
+  @ApiBearerAuth()
+  @Role(UserRole.ADMIN)
+  @UseGuards(JwtAdminAuthGuard, RoleGuard)
+  async inviteAdmin(@Body() inviteAdminDto: InviteAdminDto) {
+    const token = await this.authService.inviteAdmin(inviteAdminDto);
+
+    const { name, email } = inviteAdminDto;
+    const webUrl = process.env.WEBAPP_URL;
+
+    this.eventEmitter.emit('email.send', {
+      recipients: [{ name, address: email }],
+      subject: 'Admin Invitation',
+      html: `
+        <p>You have been invited to join as an Admin.</p>
+        <p>Please complete your registration by clicking the link below:</p>
+        <a href="${webUrl}/onboarding?access_token=${token}">Complete Registration</a>
+      `,
+    });
+
+    return {
+      message: 'Admin Invited Successfully',
+    };
+  }
+
+  @Post('set-admin-password')
+  @ApiOperation({ summary: 'Admin' })
+  @ApiBearerAuth()
+  @Role(UserRole.ADMIN)
+  @UseGuards(JwtAdminAuthGuard, RoleGuard)
+  async setInvitedAdminPassword(
+    @GetUser() { id }: LoggedInUser,
+    @Body() setPasswordDto: SetPasswordDto,
+  ) {
+    return this.authService.setInvitedAdminPassword(id, setPasswordDto);
   }
 
   @Post('logout')

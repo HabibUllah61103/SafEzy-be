@@ -22,9 +22,15 @@ import formatCoordinatesIntoPoint from 'src/utils/formatCoordinatesIntoPoint';
 import { Point } from 'geojson';
 import { UserRole } from './enum/user-role.enum';
 import { ConfigService } from '@nestjs/config';
-import { SuccessMessageResponse } from 'src/shared/types/response.types';
+import {
+  PaginatedResult,
+  SuccessMessageResponse,
+} from 'src/shared/types/response.types';
 import { handleServiceError } from 'src/utils/error-handler.util';
 import { UserProfile } from './entities/user-profile.entity';
+import { InviteAdminDto } from '../iam/auth/dtos/invite-admin.dto';
+import { SetPasswordDto } from '../iam/auth/dtos/set-password.dto';
+import { GetUserByTypeDto } from './dto/get-user-by-type.dto';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -61,9 +67,21 @@ export class UserService implements OnModuleInit {
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const createUser = await this.userRepository.save(createUserDto);
+    try {
+      const userExists = await this.userRepository.findOne({
+        where: { email: createUserDto.email },
+      });
 
-    return getSafeUser(createUser);
+      if (userExists) {
+        throw new BadRequestException('User with this email already exists');
+      }
+
+      const createUser = await this.userRepository.save(createUserDto);
+
+      return getSafeUser(createUser);
+    } catch (error) {
+      handleServiceError(error, 'UserService#create', this.logger);
+    }
   }
 
   async createForGoogleAuth(
@@ -110,8 +128,28 @@ export class UserService implements OnModuleInit {
     };
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll({
+    limit,
+    offset,
+    type,
+  }: GetUserByTypeDto): Promise<PaginatedResult<User>> {
+    try {
+      const user = await this.userRepository.findAndCount({
+        where: { role: type },
+        take: limit,
+        skip: offset * limit,
+      });
+
+      return {
+        data: user[0],
+        offset,
+        limit,
+        total: user[1],
+        hasMore: offset + limit < user[1],
+      };
+    } catch (error) {
+      handleServiceError(error, 'UserService#findAll', this.logger);
+    }
   }
 
   findOne(id: number): Promise<User> {
@@ -153,6 +191,61 @@ export class UserService implements OnModuleInit {
       };
     } catch (error) {
       handleServiceError(error, 'UserService#updateProfile', this.logger);
+    }
+  }
+
+  async inviteAdmin({
+    email,
+    name,
+    phone,
+    profileImageUrl,
+  }: InviteAdminDto): Promise<User> {
+    try {
+      const existing = await this.userRepository.findOne({ where: { email } });
+
+      if (existing) throw new BadRequestException('User already exists');
+
+      return this.userRepository.save({
+        name,
+        email,
+        phone,
+        profileImageUrl,
+      });
+    } catch (error) {
+      handleServiceError(error, 'UserService#inviteAdmin', this.logger);
+    }
+  }
+
+  async setUserPassword(
+    id: number,
+    setPasswordDto: SetPasswordDto,
+  ): Promise<User> {
+    try {
+      const user = await this.findOne(id);
+
+      if (!!user.password) {
+        throw new BadRequestException('Admin already set the password');
+      }
+
+      console.log(setPasswordDto.password);
+      const hashedPassword = await this.hashingService.hash(
+        setPasswordDto.password,
+      );
+
+      console.log(hashedPassword);
+
+      await this.userRepository.update(
+        { id },
+        {
+          password: hashedPassword,
+          isOnboarded: true,
+          isVerified: true,
+        },
+      );
+
+      return user;
+    } catch (error) {
+      handleServiceError(error, 'UserService#setUserPassword', this.logger);
     }
   }
 

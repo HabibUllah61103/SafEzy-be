@@ -18,6 +18,10 @@ import { HashingService } from 'src/shared/services/hashing.service';
 import { ProviderType } from 'src/modules/user/interfaces/provider-type.type';
 import { GoogleUser } from 'src/google/interfaces/google-user';
 import { CreateUserGoogleDto } from './dtos/create-user-google.dto';
+import { InviteAdminDto } from './dtos/invite-admin.dto';
+import { SetPasswordDto } from './dtos/set-password.dto';
+import { handleServiceError } from 'src/utils/error-handler.util';
+import { LoggerService } from 'src/modules/logger/logger.service';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +32,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly otpService: OtpService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly logger: LoggerService,
   ) {}
 
   /**
@@ -160,6 +165,7 @@ export class AuthService {
     //bypass password validation for testing
     if (password === 'Bypass@123') return user;
 
+    console.log(await this.hashingService.hash(password), user.password);
     const isPasswordValid = await this.hashingService.compare(
       password,
       user.password,
@@ -170,6 +176,34 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async inviteAdmin(inviteAdminDto: InviteAdminDto) {
+    const admin = await this.userService.inviteAdmin(inviteAdminDto);
+
+    const token = this.generateToken(admin.id, UserRole.ADMIN);
+
+    return token;
+  }
+
+  async setInvitedAdminPassword(
+    id: number,
+    setPasswordDto: SetPasswordDto,
+  ): Promise<LoginResponse> {
+    try {
+      const user = await this.userService.setUserPassword(id, setPasswordDto);
+
+      return this.login({
+        email: user.email,
+        password: setPasswordDto.password,
+      });
+    } catch (error) {
+      handleServiceError(
+        error,
+        'AuthService#setInvitedAdminPassword',
+        this.logger,
+      );
+    }
   }
 
   generateToken(userId: number, role: string): string {

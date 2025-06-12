@@ -11,6 +11,7 @@ export class JwtAdminAuthGuard extends AuthGuard('jwt-admin') {
     return super.canActivate(context);
   }
   handleRequest(error: Error, user: any) {
+    console.error('JWT Admin Auth Failed:', { error, user });
     if (error || !user) {
       throw error || new UnauthorizedException('Unauthorized');
     }

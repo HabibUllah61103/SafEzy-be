@@ -33,7 +33,7 @@ export class User extends AbstractEntity {
   @Column({ name: 'email', unique: true })
   email: string;
 
-  @Column({ name: 'password' })
+  @Column({ name: 'password', nullable: true })
   password: string;
 
   @Column({

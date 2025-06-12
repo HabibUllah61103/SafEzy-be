@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -24,6 +25,7 @@ import { RoleGuard } from 'src/shared/guards/role.guard';
 import { JwtUserAuthGuard } from 'src/shared/guards/user-jwt.guard';
 import { JwtAdminAuthGuard } from 'src/shared/guards/admin-jwt.guard';
 import { JwtAuthGuard } from 'src/shared/guards/jwt.guard';
+import { GetUserByTypeDto } from './dto/get-user-by-type.dto';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -52,6 +54,16 @@ export class UserController {
   })
   findMe(@GetUser() { id }: LoggedInUser) {
     return this.userService.find(null, { id });
+  }
+
+  @Get()
+  @Role(UserRole.ADMIN)
+  @UseGuards(JwtAdminAuthGuard, RoleGuard)
+  @ApiOperation({
+    summary: 'Get All Users using type (Admin)',
+  })
+  findAll(@Query() getUserByTypeDto: GetUserByTypeDto) {
+    return this.userService.findAll(getUserByTypeDto);
   }
 
   @Get('profile/me')
