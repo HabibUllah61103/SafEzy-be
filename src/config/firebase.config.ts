@@ -1,18 +1,22 @@
-import { readFileSync } from 'fs';
 import * as admin from 'firebase-admin';
-import { join } from 'path';
+import { cert } from 'firebase-admin/app';
+import { ConfigService } from '@nestjs/config';
 
 export const firebaseConfig = {
   provide: 'FIREBASE_APP',
   useFactory: () => {
-    const serviceAccountPath = join('./fcm-service-account.json');
+    const configService = new ConfigService();
 
-    const serviceAccount = JSON.parse(
-      readFileSync(serviceAccountPath, 'utf8'),
-    ) as admin.ServiceAccount;
+    const credential = {
+      credential: cert({
+        clientEmail: configService.getOrThrow('CLIENT_EMAIL'),
+        privateKey: configService.getOrThrow('PRIVATE_KEY'),
+        projectId: configService.getOrThrow('PROJECT_ID'),
+      }),
+    } as admin.AppOptions;
 
     return admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+      credential: credential.credential,
     });
   },
 };

@@ -16,11 +16,15 @@ import { GetUser } from 'src/shared/decorators/user.decorator';
 import { UserRole } from '../user/enum/user-role.enum';
 import { PaginationDto } from 'src/shared/dtos';
 import { LoggedInUser } from '../user/interfaces/logged-in-user.interface';
+import { JwtAuthGuard } from 'src/shared/guards/jwt.guard';
+import { RoleGuard } from 'src/shared/guards/role.guard';
+import { Role } from 'src/shared/decorators/role.decorator';
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
 @Controller('notifications')
-@UseGuards(AuthGuard([RoleStrategy.USER]))
+@Role(UserRole.ADMIN, UserRole.USER)
+@UseGuards(JwtAuthGuard, RoleGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
