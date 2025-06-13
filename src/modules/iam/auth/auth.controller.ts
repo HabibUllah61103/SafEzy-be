@@ -289,6 +289,7 @@ export class AuthController {
         profileImageUrl: user?.profileImageUrl,
       },
       verified: user.isVerified,
+      onboarded: user.isOnboarded,
       role: user.role,
     };
   }

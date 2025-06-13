@@ -23,6 +23,7 @@ import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { DeviceModule } from './modules/device/device.module';
+import { SocketModule } from './modules/socket/socket.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { DeviceModule } from './modules/device/device.module';
     NotificationsModule,
     UploadModule,
     DeviceModule,
+    SocketModule,
   ],
   controllers: [AppController],
   providers: [

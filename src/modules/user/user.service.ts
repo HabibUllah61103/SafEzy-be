@@ -138,6 +138,9 @@ export class UserService implements OnModuleInit {
         where: { role: type },
         take: limit,
         skip: offset * limit,
+        order: {
+          createdAt: 'DESC',
+        },
       });
 
       return {
