@@ -210,6 +210,7 @@ export class UserService implements OnModuleInit {
         email,
         phone,
         profileImageUrl,
+        role: UserRole.ADMIN,
       });
     } catch (error) {
       handleServiceError(error, 'UserService#inviteAdmin', this.logger);
